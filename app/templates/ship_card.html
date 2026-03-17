@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Ship Card</title></head>
+<body>
+  <h1>{{ ship.vendor }} {{ ship.model }} ({{ ship.name }})</h1>
+  <h2>Установленные компоненты</h2>
+  <ul>
+    {% for part in parts %}
+      <li>{{ part.vendor }} {{ part.model }} | {{ part.class_ }} | size {{ part.size }} | {{ part.part_type.type }}</li>
+    {% else %}
+      <li>Компоненты не установлены</li>
+    {% endfor %}
+  </ul>
+</body>
+</html>

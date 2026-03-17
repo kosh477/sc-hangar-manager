@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Parts Catalog</title></head>
+<body>
+  <h1>Управление справочником компонентов/типов</h1>
+
+  <h2>Типы компонентов</h2>
+  <ul>
+    {% for type in part_types %}
+      <li>#{{ type.id }} {{ type.type }} (replaceable: {{ type.isReplaceble }})</li>
+    {% else %}
+      <li>Справочник типов пуст</li>
+    {% endfor %}
+  </ul>
+
+  <h2>Компоненты</h2>
+  <ul>
+    {% for part in parts %}
+      <li>#{{ part.id }} {{ part.vendor }} {{ part.model }} | {{ part.class_ }} | size {{ part.size }} | {{ part.part_type.type }}</li>
+    {% else %}
+      <li>Справочник компонентов пуст</li>
+    {% endfor %}
+  </ul>
+
+  <p>Для управления используйте API: <code>POST /part-types</code> и <code>POST /parts</code>.</p>
+</body>
+</html>
