@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>User Ships</title></head>
+<body>
+  <h1>Корабли пользователя #{{ user_id }}</h1>
+  <ul>
+    {% for ship in ships %}
+      <li>{{ ship.vendor }} {{ ship.model }} ({{ ship.name }})</li>
+    {% else %}
+      <li>Нет кораблей</li>
+    {% endfor %}
+  </ul>
+</body>
+</html>
