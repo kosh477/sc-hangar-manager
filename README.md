@@ -26,3 +26,15 @@ flask --app app.main run --host=0.0.0.0 --port=8000
 ```bash
 curl http://127.0.0.1:8000/health
 ```
+
+## Миграции (Alembic)
+
+```bash
+alembic upgrade head
+```
+
+Откат последней миграции:
+
+```bash
+alembic downgrade -1
+```
