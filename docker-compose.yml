@@ -1,0 +1,41 @@
+services:
+  mysql:
+    image: mysql:8
+    container_name: sc-hangar-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: sc-hangar-manager
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    image: python:3.12-slim
+    container_name: sc-hangar-app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    working_dir: /app
+    volumes:
+      - ./:/app
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: sc-hangar-manager
+      DB_USER: root
+      DB_PASSWORD: root
+      JWT_SECRET_KEY: dev-change-me
+    command: ["bash", "scripts/start.sh"]
+    ports:
+      - "8000:8000"
+
+volumes:
+  mysql-data:
