@@ -62,6 +62,8 @@ docker compose exec app alembic downgrade -1
 
 Реализованы endpoint'ы:
 
+- `POST /auth/register` — регистрация пользователя и выдача JWT access token.
+- `POST /auth/login` — вход по `login`/`password` и выдача JWT access token.
 - `GET/POST /users`
 - `GET/POST /ships`
 - `GET/POST /parts`
@@ -69,6 +71,40 @@ docker compose exec app alembic downgrade -1
 - `GET/POST /ship/{id}/parts`
 - `GET/POST /user/{id}/ships` (soft-delete через `isDeleted=true`)
 - `GET/POST /user/{id}/parts` (soft-delete через `isDeleted=true`)
+
+
+### Авторизация
+
+Защищённые endpoint'ы требуют заголовок:
+
+```
+Authorization: Bearer <accessToken>
+```
+
+Токен нужно получить через `POST /auth/register` или `POST /auth/login`.
+
+Пример регистрации:
+
+```bash
+curl -X POST http://127.0.0.1:8000/auth/register \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Pilot","email":"pilot@example.com","login":"pilot","password":"StrongPass123"}'
+```
+
+Пример логина:
+
+```bash
+curl -X POST http://127.0.0.1:8000/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"login":"pilot","password":"StrongPass123"}'
+```
+
+Пример запроса к защищённому endpoint:
+
+```bash
+curl http://127.0.0.1:8000/user/1/ships \
+  -H 'Authorization: Bearer <accessToken>'
+```
 
 Ошибки API:
 
@@ -112,6 +148,7 @@ curl -X POST http://127.0.0.1:8000/part-types \
 
 ## UI страницы
 
+- `/` — простой фронтенд с авторизацией и кнопками для загрузки данных из API.
 - `/ui/user/<id>/ships` — список кораблей пользователя.
 - `/ui/user/<id>/parts` — список компонентов пользователя с фильтрами `class`, `size`, `type`.
 - `/ui/ship/<id>` — карточка корабля с установленными компонентами.
