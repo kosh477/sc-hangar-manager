@@ -9,10 +9,10 @@
 <body>
   <main class="container">
     <h1>SC Hangar Manager</h1>
-    <p class="muted">Простой фронтенд для авторизации и просмотра ангара через API.</p>
 
-    <section class="card">
+    <section id="auth-screen" class="card">
       <h2>Авторизация</h2>
+      <p class="muted">Войдите в систему, чтобы открыть каталог своих кораблей.</p>
       <div class="row">
         <input id="login" placeholder="Логин">
         <input id="password" type="password" placeholder="Пароль">
@@ -20,37 +20,33 @@
       <div class="row">
         <button id="login-btn">Войти</button>
       </div>
-      <details>
-        <summary>Регистрация нового пользователя</summary>
-        <div class="row">
-          <input id="reg-name" placeholder="Имя">
-          <input id="reg-email" placeholder="Email">
-        </div>
-        <div class="row">
-          <input id="reg-login" placeholder="Логин">
-          <input id="reg-password" type="password" placeholder="Пароль">
-          <button id="register-btn">Зарегистрировать</button>
-        </div>
-      </details>
+      <p class="muted">Нет аккаунта? <a id="open-register-link" href="#register">Перейти к регистрации</a></p>
       <p id="auth-status" class="muted">Не авторизован</p>
     </section>
 
-    <section class="card">
-      <h2>Мой ангар</h2>
+    <section id="register-screen" class="card hidden">
+      <h2>Регистрация</h2>
       <div class="row">
-        <button id="load-ships-btn">Загрузить мои корабли</button>
-        <button id="load-parts-btn">Загрузить мои компоненты</button>
+        <input id="reg-name" placeholder="Имя">
+        <input id="reg-email" placeholder="Email">
       </div>
-      <ul id="my-data"></ul>
+      <div class="row">
+        <input id="reg-login" placeholder="Логин">
+        <input id="reg-password" type="password" placeholder="Пароль">
+      </div>
+      <div class="row">
+        <button id="register-btn">Зарегистрироваться</button>
+      </div>
+      <p class="muted">Уже есть аккаунт? <a id="open-login-link" href="#login">Вернуться ко входу</a></p>
     </section>
 
-    <section class="card">
-      <h2>Каталог (требуется вход)</h2>
+    <section id="ships-screen" class="card hidden">
+      <h2>Каталог моих кораблей</h2>
       <div class="row">
-        <button id="load-all-ships-btn">Все корабли</button>
-        <button id="load-all-parts-btn">Все компоненты</button>
+        <button id="reload-ships-btn">Обновить каталог</button>
+        <button id="logout-btn" class="secondary">Выйти</button>
       </div>
-      <ul id="public-data"></ul>
+      <ul id="my-data"></ul>
     </section>
   </main>
 

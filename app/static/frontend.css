@@ -48,11 +48,24 @@ button:hover {
   filter: brightness(1.1);
 }
 
+button.secondary {
+  background: transparent;
+  border-color: #344152;
+}
+
 .muted {
   color: #9fb0c3;
+}
+
+a {
+  color: #7ab2ff;
 }
 
 ul {
   margin: 0;
   padding-left: 1.2rem;
+}
+
+.hidden {
+  display: none;
 }
