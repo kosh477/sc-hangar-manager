@@ -2,19 +2,25 @@
 
 from flask import Blueprint, render_template, request
 
+from app.auth import require_auth, require_same_user
+
 from app.models import PartByShip, PartByUser, PartType, Ship, ShipByUser, ShipPart
 
 pages_bp = Blueprint("pages", __name__)
 
 
 @pages_bp.get("/ui/user/<int:user_id>/ships")
+@require_auth
 def user_ships_page(user_id: int):
+    require_same_user(user_id)
     ships = ShipByUser.query.filter_by(userId=user_id, isDeleted=False).join(ShipByUser.ship).all()
     return render_template("user_ships.html", user_id=user_id, ships=[link.ship for link in ships])
 
 
 @pages_bp.get("/ui/user/<int:user_id>/parts")
+@require_auth
 def user_parts_page(user_id: int):
+    require_same_user(user_id)
     class_filter = request.args.get("class", "")
     size_filter = request.args.get("size", type=int)
     type_filter = request.args.get("type", "")

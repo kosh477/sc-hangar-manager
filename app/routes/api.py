@@ -6,10 +6,12 @@ from flask import Blueprint, jsonify, request
 from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 
+from app.auth import AuthError, create_access_token, hash_password, require_auth, require_same_user, verify_password
 from app.db import db
 from app.models import PartByShip, PartType, Ship, ShipPart, User
 from app.models.entities import PartByUser, ShipByUser
 from app.schemas import (
+    AuthResponse,
     PartCreateRequest,
     PartResponse,
     PartTypeCreateRequest,
@@ -18,6 +20,7 @@ from app.schemas import (
     ShipPartAssignmentRequest,
     ShipResponse,
     UserCreateRequest,
+    UserLoginRequest,
     UserPartAssignmentRequest,
     UserResponse,
     UserShipAssignmentRequest,
@@ -78,12 +81,26 @@ def _get_or_404(model, entity_id: int, entity_name: str):
     return entity
 
 
+def _build_auth_response(user: User):
+    payload = {
+        "accessToken": create_access_token(user.id),
+        "tokenType": "Bearer",
+        "user": _user_to_dict(user),
+    }
+    return AuthResponse.model_validate(payload).model_dump()
+
+
 @api_bp.errorhandler(ApiError)
 def handle_api_error(err: ApiError):
     payload = {"error": err.message}
     if err.details:
         payload["details"] = err.details
     return jsonify(payload), err.status_code
+
+
+@api_bp.errorhandler(AuthError)
+def handle_auth_error(err: AuthError):
+    return jsonify({"error": err.message}), err.status_code
 
 
 @api_bp.errorhandler(ValidationError)
@@ -97,14 +114,8 @@ def handle_integrity_error(err: IntegrityError):
     return jsonify({"error": "Duplicate or conflicting data"}), 409
 
 
-@api_bp.get("/users")
-def list_users():
-    users = User.query.order_by(User.id.asc()).all()
-    return jsonify([_user_to_dict(user) for user in users]), 200
-
-
-@api_bp.post("/users")
-def create_user():
+@api_bp.post("/auth/register")
+def register_user():
     payload = _parse_schema(UserCreateRequest)
     duplicate = User.query.filter((User.email == payload.email) | (User.login == payload.login)).first()
     if duplicate is not None:
@@ -114,11 +125,32 @@ def create_user():
         name=payload.name.strip(),
         email=payload.email.strip(),
         login=payload.login.strip(),
-        password=payload.password,
+        password=hash_password(payload.password),
     )
     db.session.add(user)
     db.session.commit()
-    return jsonify(_user_to_dict(user)), 201
+    return jsonify(_build_auth_response(user)), 201
+
+
+@api_bp.post("/auth/login")
+def login_user():
+    payload = _parse_schema(UserLoginRequest)
+    user = User.query.filter_by(login=payload.login.strip()).first()
+    if user is None or not verify_password(payload.password, user.password):
+        raise ApiError(401, "Invalid login or password")
+    return jsonify(_build_auth_response(user)), 200
+
+
+@api_bp.get("/users")
+@require_auth
+def list_users():
+    users = User.query.order_by(User.id.asc()).all()
+    return jsonify([_user_to_dict(user) for user in users]), 200
+
+
+@api_bp.post("/users")
+def create_user():
+    return register_user()
 
 
 @api_bp.get("/ships")
@@ -128,6 +160,7 @@ def list_ships():
 
 
 @api_bp.post("/ships")
+@require_auth
 def create_ship():
     payload = _parse_schema(ShipCreateRequest)
     duplicate = Ship.query.filter_by(
@@ -150,6 +183,7 @@ def list_ship_parts(ship_id: int):
 
 
 @api_bp.post("/ship/<int:ship_id>/parts")
+@require_auth
 def assign_ship_part(ship_id: int):
     _get_or_404(Ship, ship_id, "Ship")
     payload = _parse_schema(ShipPartAssignmentRequest)
@@ -166,14 +200,18 @@ def assign_ship_part(ship_id: int):
 
 
 @api_bp.get("/user/<int:user_id>/ships")
+@require_auth
 def list_user_ships(user_id: int):
+    require_same_user(user_id)
     _get_or_404(User, user_id, "User")
     links = ShipByUser.query.filter_by(userId=user_id, isDeleted=False).join(ShipByUser.ship).all()
     return jsonify([_ship_to_dict(link.ship) for link in links]), 200
 
 
 @api_bp.post("/user/<int:user_id>/ships")
+@require_auth
 def assign_user_ship(user_id: int):
+    require_same_user(user_id)
     _get_or_404(User, user_id, "User")
     payload = _parse_schema(UserShipAssignmentRequest)
     _get_or_404(Ship, payload.shipId, "Ship")
@@ -197,7 +235,9 @@ def assign_user_ship(user_id: int):
 
 
 @api_bp.get("/user/<int:user_id>/parts")
+@require_auth
 def list_user_parts(user_id: int):
+    require_same_user(user_id)
     _get_or_404(User, user_id, "User")
 
     query = (
@@ -221,7 +261,9 @@ def list_user_parts(user_id: int):
 
 
 @api_bp.post("/user/<int:user_id>/parts")
+@require_auth
 def assign_user_part(user_id: int):
+    require_same_user(user_id)
     _get_or_404(User, user_id, "User")
     payload = _parse_schema(UserPartAssignmentRequest)
     _get_or_404(ShipPart, payload.partId, "Part")
@@ -251,6 +293,7 @@ def list_parts():
 
 
 @api_bp.post("/parts")
+@require_auth
 def create_part():
     payload = _parse_schema(PartCreateRequest)
     _get_or_404(PartType, payload.partTypeId, "Part type")
@@ -285,6 +328,7 @@ def list_part_types():
 
 
 @api_bp.post("/part-types")
+@require_auth
 def create_part_type():
     payload = _parse_schema(PartTypeCreateRequest)
     duplicate = PartType.query.filter_by(type=payload.type.strip()).first()

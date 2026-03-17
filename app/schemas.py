@@ -17,7 +17,18 @@ class UserCreateRequest(ApiSchema):
     name: str = Field(min_length=1, max_length=128)
     email: EmailStr
     login: str = Field(min_length=1, max_length=128)
+    password: str = Field(min_length=8, max_length=255)
+
+
+class UserLoginRequest(ApiSchema):
+    login: str = Field(min_length=1, max_length=128)
     password: str = Field(min_length=1, max_length=255)
+
+
+class AuthResponse(ApiSchema):
+    accessToken: str
+    tokenType: str = "Bearer"
+    user: "UserResponse"
 
 
 class UserResponse(ApiSchema):
@@ -93,4 +104,3 @@ class ShipPartAssignmentRequest(ApiSchema):
 class ApiErrorResponse(ApiSchema):
     error: str
     details: list[str] | None = None
-
