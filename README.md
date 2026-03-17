@@ -83,6 +83,12 @@ Authorization: Bearer <accessToken>
 
 Токен нужно получить через `POST /auth/register` или `POST /auth/login`.
 
+Без авторизации доступны только:
+- `GET /health`
+- `POST /auth/register`
+- `POST /auth/login`
+- `GET /` (web UI shell без данных)
+
 Пример регистрации:
 
 ```bash

@@ -114,6 +114,10 @@ byId("load-parts-btn").addEventListener("click", async () => {
 });
 
 byId("load-all-ships-btn").addEventListener("click", async () => {
+  if (!state.userId) {
+    authStatus.textContent = "Сначала выполните вход";
+    return;
+  }
   try {
     const ships = await api("/ships");
     renderList(publicData, ships, (ship) => `${ship.vendor} ${ship.model} (${ship.name})`);
@@ -123,6 +127,10 @@ byId("load-all-ships-btn").addEventListener("click", async () => {
 });
 
 byId("load-all-parts-btn").addEventListener("click", async () => {
+  if (!state.userId) {
+    authStatus.textContent = "Сначала выполните вход";
+    return;
+  }
   try {
     const parts = await api("/parts");
     renderList(

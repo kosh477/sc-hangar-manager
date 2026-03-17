@@ -154,6 +154,7 @@ def create_user():
 
 
 @api_bp.get("/ships")
+@require_auth
 def list_ships():
     ships = Ship.query.order_by(Ship.id.asc()).all()
     return jsonify([_ship_to_dict(ship) for ship in ships]), 200
@@ -176,6 +177,7 @@ def create_ship():
 
 
 @api_bp.get("/ship/<int:ship_id>/parts")
+@require_auth
 def list_ship_parts(ship_id: int):
     _get_or_404(Ship, ship_id, "Ship")
     links = PartByShip.query.filter_by(shipId=ship_id).join(PartByShip.part).all()
@@ -287,6 +289,7 @@ def assign_user_part(user_id: int):
 
 
 @api_bp.get("/parts")
+@require_auth
 def list_parts():
     parts = ShipPart.query.join(ShipPart.part_type).order_by(ShipPart.id.asc()).all()
     return jsonify([_part_to_dict(part) for part in parts]), 200
@@ -322,6 +325,7 @@ def create_part():
 
 
 @api_bp.get("/part-types")
+@require_auth
 def list_part_types():
     types = PartType.query.order_by(PartType.id.asc()).all()
     return jsonify([_part_type_to_dict(part_type) for part_type in types]), 200
