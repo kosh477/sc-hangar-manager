@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SC Hangar Manager</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='frontend.css') }}">
+</head>
+<body>
+  <main class="container">
+    <h1>SC Hangar Manager</h1>
+    <p class="muted">Простой фронтенд для авторизации и просмотра ангара через API.</p>
+
+    <section class="card">
+      <h2>Авторизация</h2>
+      <div class="row">
+        <input id="login" placeholder="Логин">
+        <input id="password" type="password" placeholder="Пароль">
+      </div>
+      <div class="row">
+        <button id="login-btn">Войти</button>
+      </div>
+      <details>
+        <summary>Регистрация нового пользователя</summary>
+        <div class="row">
+          <input id="reg-name" placeholder="Имя">
+          <input id="reg-email" placeholder="Email">
+        </div>
+        <div class="row">
+          <input id="reg-login" placeholder="Логин">
+          <input id="reg-password" type="password" placeholder="Пароль">
+          <button id="register-btn">Зарегистрировать</button>
+        </div>
+      </details>
+      <p id="auth-status" class="muted">Не авторизован</p>
+    </section>
+
+    <section class="card">
+      <h2>Мой ангар</h2>
+      <div class="row">
+        <button id="load-ships-btn">Загрузить мои корабли</button>
+        <button id="load-parts-btn">Загрузить мои компоненты</button>
+      </div>
+      <ul id="my-data"></ul>
+    </section>
+
+    <section class="card">
+      <h2>Публичный каталог</h2>
+      <div class="row">
+        <button id="load-all-ships-btn">Все корабли</button>
+        <button id="load-all-parts-btn">Все компоненты</button>
+      </div>
+      <ul id="public-data"></ul>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='frontend.js') }}" defer></script>
+</body>
+</html>

@@ -9,6 +9,12 @@ from app.models import PartByShip, PartByUser, PartType, Ship, ShipByUser, ShipP
 pages_bp = Blueprint("pages", __name__)
 
 
+@pages_bp.get("/")
+def frontend_index_page():
+    """Simple frontend shell for auth and API interaction."""
+    return render_template("frontend.html")
+
+
 @pages_bp.get("/ui/user/<int:user_id>/ships")
 @require_auth
 def user_ships_page(user_id: int):
