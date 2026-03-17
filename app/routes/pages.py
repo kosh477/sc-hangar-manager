@@ -9,6 +9,12 @@ from app.models import PartByShip, PartByUser, PartType, Ship, ShipByUser, ShipP
 pages_bp = Blueprint("pages", __name__)
 
 
+@pages_bp.get("/")
+def frontend_index_page():
+    """Simple frontend shell for auth and API interaction."""
+    return render_template("frontend.html")
+
+
 @pages_bp.get("/ui/user/<int:user_id>/ships")
 @require_auth
 def user_ships_page(user_id: int):
@@ -51,6 +57,7 @@ def user_parts_page(user_id: int):
 
 
 @pages_bp.get("/ui/ship/<int:ship_id>")
+@require_auth
 def ship_card_page(ship_id: int):
     ship = Ship.query.get_or_404(ship_id)
     parts = PartByShip.query.filter_by(shipId=ship_id).join(PartByShip.part).all()
@@ -58,6 +65,7 @@ def ship_card_page(ship_id: int):
 
 
 @pages_bp.get("/ui/parts-catalog")
+@require_auth
 def parts_catalog_page():
     part_types = PartType.query.order_by(PartType.id.asc()).all()
     parts = ShipPart.query.join(ShipPart.part_type).order_by(ShipPart.id.asc()).all()
