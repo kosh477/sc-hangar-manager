@@ -48,6 +48,8 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("email", name="uq_users_email"),
+        sa.UniqueConstraint("login", name="uq_users_login"),
     )
     op.create_index("ix_users_email", "users", ["email"])
     op.create_index("ix_users_login", "users", ["login"])
@@ -58,10 +60,18 @@ def upgrade() -> None:
         sa.Column("vendor", sa.String(length=128), nullable=False),
         sa.Column("model", sa.String(length=128), nullable=False),
         sa.Column("class", sa.String(length=64), nullable=False),
-        sa.Column("size", sa.String(length=64), nullable=False),
+        sa.Column("size", sa.Integer(), nullable=False),
         sa.Column("partTypeId", sa.Integer(), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False),
+        sa.CheckConstraint(
+            "size >= 1 AND size <= 10",
+            name="ck_shipsParts_size_range",
+        ),
+        sa.CheckConstraint(
+            "class IN ('Military', 'Competition', 'Civilian', 'Stealth', 'Industrial')",
+            name="ck_shipsParts_class_allowed",
+        ),
         sa.ForeignKeyConstraint(["partTypeId"], ["partsTypes.id"], name="fk_shipsParts_partTypeId_partsTypes"),
         sa.PrimaryKeyConstraint("id"),
     )
