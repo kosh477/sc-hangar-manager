@@ -7,12 +7,23 @@ const byId = (id) => document.getElementById(id);
 
 const authStatus = byId("auth-status");
 const myData = byId("my-data");
-const publicData = byId("public-data");
 
-function updateAuthStatus() {
-  authStatus.textContent = state.token
+const screens = {
+  auth: byId("auth-screen"),
+  register: byId("register-screen"),
+  ships: byId("ships-screen"),
+};
+
+function setScreen(screenName) {
+  Object.entries(screens).forEach(([name, el]) => {
+    el.classList.toggle("hidden", name !== screenName);
+  });
+}
+
+function updateAuthStatus(message = "") {
+  authStatus.textContent = message || (state.token
     ? `Авторизован как user #${state.userId}`
-    : "Не авторизован";
+    : "Не авторизован");
 }
 
 function renderList(el, items, formatter) {
@@ -43,6 +54,37 @@ async function api(path, options = {}) {
   return payload;
 }
 
+async function openShipsCatalog() {
+  if (!state.userId || !state.token) {
+    setScreen("auth");
+    updateAuthStatus();
+    return;
+  }
+
+  try {
+    const ships = await api(`/user/${state.userId}/ships`);
+    renderList(myData, ships, (ship) => `${ship.vendor} ${ship.model} (${ship.name})`);
+    setScreen("ships");
+  } catch (error) {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userId");
+    state.token = "";
+    state.userId = null;
+    updateAuthStatus(`Сессия недействительна: ${error.message}`);
+    setScreen("auth");
+  }
+}
+
+byId("open-register-link").addEventListener("click", (event) => {
+  event.preventDefault();
+  setScreen("register");
+});
+
+byId("open-login-link").addEventListener("click", (event) => {
+  event.preventDefault();
+  setScreen("auth");
+});
+
 byId("login-btn").addEventListener("click", async () => {
   try {
     const login = byId("login").value.trim();
@@ -56,8 +98,9 @@ byId("login-btn").addEventListener("click", async () => {
     localStorage.setItem("authToken", state.token);
     localStorage.setItem("userId", String(state.userId));
     updateAuthStatus();
+    await openShipsCatalog();
   } catch (error) {
-    authStatus.textContent = `Ошибка входа: ${error.message}`;
+    updateAuthStatus(`Ошибка входа: ${error.message}`);
   }
 });
 
@@ -78,69 +121,25 @@ byId("register-btn").addEventListener("click", async () => {
     localStorage.setItem("authToken", state.token);
     localStorage.setItem("userId", String(state.userId));
     updateAuthStatus();
+    await openShipsCatalog();
   } catch (error) {
-    authStatus.textContent = `Ошибка регистрации: ${error.message}`;
+    updateAuthStatus(`Ошибка регистрации: ${error.message}`);
   }
 });
 
-byId("load-ships-btn").addEventListener("click", async () => {
-  if (!state.userId) {
-    authStatus.textContent = "Сначала выполните вход";
-    return;
-  }
-  try {
-    const ships = await api(`/user/${state.userId}/ships`);
-    renderList(myData, ships, (ship) => `${ship.vendor} ${ship.model} (${ship.name})`);
-  } catch (error) {
-    authStatus.textContent = `Ошибка загрузки кораблей: ${error.message}`;
-  }
+byId("reload-ships-btn").addEventListener("click", async () => {
+  await openShipsCatalog();
 });
 
-byId("load-parts-btn").addEventListener("click", async () => {
-  if (!state.userId) {
-    authStatus.textContent = "Сначала выполните вход";
-    return;
-  }
-  try {
-    const parts = await api(`/user/${state.userId}/parts`);
-    renderList(
-      myData,
-      parts,
-      (part) => `${part.vendor} ${part.model} | ${part.class} | size ${part.size} | ${part.partType.type}`,
-    );
-  } catch (error) {
-    authStatus.textContent = `Ошибка загрузки компонентов: ${error.message}`;
-  }
-});
-
-byId("load-all-ships-btn").addEventListener("click", async () => {
-  if (!state.userId) {
-    authStatus.textContent = "Сначала выполните вход";
-    return;
-  }
-  try {
-    const ships = await api("/ships");
-    renderList(publicData, ships, (ship) => `${ship.vendor} ${ship.model} (${ship.name})`);
-  } catch (error) {
-    authStatus.textContent = `Ошибка загрузки каталога: ${error.message}`;
-  }
-});
-
-byId("load-all-parts-btn").addEventListener("click", async () => {
-  if (!state.userId) {
-    authStatus.textContent = "Сначала выполните вход";
-    return;
-  }
-  try {
-    const parts = await api("/parts");
-    renderList(
-      publicData,
-      parts,
-      (part) => `${part.vendor} ${part.model} | ${part.class} | size ${part.size} | ${part.partType.type}`,
-    );
-  } catch (error) {
-    authStatus.textContent = `Ошибка загрузки каталога: ${error.message}`;
-  }
+byId("logout-btn").addEventListener("click", () => {
+  localStorage.removeItem("authToken");
+  localStorage.removeItem("userId");
+  state.token = "";
+  state.userId = null;
+  myData.innerHTML = "";
+  updateAuthStatus();
+  setScreen("auth");
 });
 
 updateAuthStatus();
+openShipsCatalog();
